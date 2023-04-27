@@ -154,11 +154,50 @@ public class Comp {
 		return per;
 	}
 	
+	public static void liPo(File inp) throws IncompatException, IOException {
+		int[] reduct = new int[inp.list().length];
+		for(int x=0; x<inp.list().length; x++) {
+			String name = getAddress(inp, x).getName();
+			
+			if(!name.substring(0,3).equals("1in"))
+				throw new IncompatException("Does not begin with 1in");
+			if(name.length() < 4)
+				throw new IncompatException("Does not contain a secondary value");
+			if(!Character.isDigit(name.charAt(3)))
+				throw new IncompatException(name.charAt(3)+" is not a number");
+			try {
+				for(int y=4; y<=name.length(); y++) 
+					if (!Character.isDigit(name.charAt(y))) {
+						reduct[x] = Integer.parseInt(name.substring(3, y));
+						break;
+					}
+			}
+			catch (Exception e) {reduct[x] = Integer.parseInt(name.substring(3, name.length()));}
+
+			for(int y=0; y<getAddress(inp, x).list().length; y++) {
+				String temp = getAddress(inp, x, y).getName();
+				if (Integer.parseInt(temp.substring(0, temp.length()-4))%reduct[x]==0)
+					getAddress(inp, x, y).delete();
+				System.out.print(y+" ");
+			}
+			System.out.println();
+		}
+		reOrder(inp);
+	}	
+	public static void reOrder(File inp) throws IOException {
+		for(int x=0; x<inp.list().length; x++) {
+			for (int y=0; y<getAddress(inp, x).list().length; y++) {
+				while(!getAddress(inp, x, y).renameTo(new File(String.format("%s\\%06d.png", getAddress(inp, x).getCanonicalPath(), y)))) {}
+				System.out.print(getAddress(inp, x, y).getName()+" ");
+			}
+			System.out.println();
+		}
+	}
 	public static File getAddress(File inp, int x, int y) throws IOException {return getAddress(new File(inp.getCanonicalPath().concat("\\"+inp.list()[x])), y);}
 	public static File getAddress(File inp, int x) throws IOException {return new File(inp.getCanonicalPath().concat("\\"+inp.list()[x]));}
 	
 	public static void main(String args[]) throws IOException, IncompatException {
-		double[][] gennedPer = evalNoImg(new File("trialInp"), new File("trialOut"));
+		double[][] gennedPer = eval(new File("trialInp"), new File("trialOut"));
 		for (int x=0; x<gennedPer[0].length; x++)
 			for (int y=0; y<gennedPer.length; y++)
 				System.out.printf("%.5f, "+(y!=gennedPer.length-1? "": (gennedPer[y-1][x]<gennedPer[y][x])+"\n"), gennedPer[y][x]);
